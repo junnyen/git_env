@@ -1,0 +1,11 @@
+*.swp
+*.swo
+*.swn
+tags
+ISS/common/msr/inc/mibsave.h
+cli/inc/clicxdyn.h
+cli/src/clicmds.c
+clidefs/clicmds.def
+internaltools/npapi/pltfmcli/add.def
+internaltools/npapi/pltfmcli/rem.def
+cli/tools/exe/cmdscan*
