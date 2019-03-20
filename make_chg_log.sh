@@ -1,8 +1,8 @@
 #!/bin/bash
 help ()
 {
-    echo "Usage: $0 [Old Pkg_Set.txt] [New Pkg_Set.txt]" 
-    echo "Output: CHGLOG_[Old Pkg_Set.txt]_n_[New Pkg_Set.txt].txt"
+    echo "Usage: $0 [Old Pkg_Set.txt] [New Pkg_Set.txt] [win_type]" 
+    echo "Output: CHGLOG_[Old Pkg_Set.txt]_n_[New Pkg_Set.txt].txt 1"
     echo
 }
 
@@ -19,20 +19,24 @@ fi
 
 DIFF1=$1
 DIFF2=$2
+if [ $3 -eq 0 ]; then
+    unset NL
+else
+    NL="\r"
+fi
 TRIM_FILE1=$(echo ${1%.*})
 TRIM_FILE2=$(echo ${2%.*})
 CODE_BASE="download/NET/MDS/4000/G4000/develop/source/"
 
-DIFF_PKGS=($(diff -C1 ${DIFF1} ${DIFF2} | grep project | uniq | awk -F 'project' '{print $2}'))
+DIFF_PKGS=($(diff -C1 ${DIFF1} ${DIFF2} | grep project | sort | uniq | awk -F 'project' '{print $2}'))
 
 CHG_LOG="CHGLOG_${TRIM_FILE1}_n_${TRIM_FILE2}.txt"
 C_PATH=$(pwd)
 CHG_LOG_PATH="${C_PATH}/${CHG_LOG}"
 > ${C_PATH}/${CHG_LOG}
 
-echo "***** ${DIFF1}" >> ${CHG_LOG_PATH}
-echo "***** ${DIFF2}" >> ${CHG_LOG_PATH}
-#echo -e "***** ${DIFF2}\r\n" >> ${CHG_LOG_PATH} 
+echo -e "***** ${DIFF1}${NL}" >> ${CHG_LOG_PATH}
+echo -e "***** ${DIFF2}${NL}" >> ${CHG_LOG_PATH}
 
 for ((i=0;i<${#DIFF_PKGS[@]};i++)); do
     PKG=$(echo ${DIFF_PKGS[$i]} | awk -F '/' '{print $2}')
@@ -48,18 +52,28 @@ for ((i=0;i<${#DIFF_PKGS[@]};i++)); do
         cd ${C_PATH}
         continue
     elif [ -z "${CMT_ID1}" ]; then
-        echo "$(($i + 1)): ${DIFF_PKGS[$i]}" >> ${CHG_LOG_PATH} 
+        echo "11111"
+        echo -e "$(($i + 1)): ${DIFF_PKGS[$i]}${NL}" >> ${CHG_LOG_PATH} 
         git log --oneline --pretty="%h: %s -- %an" >> ${CHG_LOG_PATH}
+        echo -e "${NL}" >> ${CHG_LOG_PATH}
     elif [ -z "${CMT_ID2}" ]; then
-        echo "$(($i + 1)): ${DIFF_PKGS[$i]}" >> ${CHG_LOG_PATH} 
-        echo "DELETED" >> ${CHG_LOG_PATH}
+        echo "2222"
+        echo -e "$(($i + 1)): ${DIFF_PKGS[$i]}${NL}" >> ${CHG_LOG_PATH} 
+        echo -e "*** DELETED${NL}" >> ${CHG_LOG_PATH}
     else
-        echo $(($i + 1)): ${DIFF_PKGS[$i]} >> ${CHG_LOG_PATH} 
-        git log --oneline --pretty="%h: %s -- %an"  ${CMT_ID1::(5)}..${CMT_ID2::(5)} >> ${CHG_LOG_PATH}
+        echo "333"
+        echo -e "$(($i + 1)): ${DIFF_PKGS[$i]}${NL}" >> ${CHG_LOG_PATH} 
+        CMP_CONTEXT=$(git log --oneline --pretty="%h: %s -- %an"  ${CMT_ID1::(5)}..${CMT_ID2::(5)}) 
+        if [ -z "${CMP_CONTEXT}" ]; then
+            echo -e "*** REVERT (please ignore this in app_moxa_web package)${NL}" >> ${CHG_LOG_PATH}
+            (git log --oneline --pretty="%h: %s -- %an" ${CMT_ID2::(5)}..${CMT_ID1::(5)}) >> ${CHG_LOG_PATH}
+        else 
+            echo -e "${CMP_CONTEXT}${NL}" >> ${CHG_LOG_PATH}
+        fi
     fi
-    echo "-------------------------------------------------" >> ${CHG_LOG_PATH}
+    echo -e "-------------------------------------------------" >> ${CHG_LOG_PATH}
     cd ${C_PATH}
 done
 
-echo "Total Difference: ${#DIFF_PKGS[@]}" >> ${CHG_LOG_PATH}
+echo -e "Total Difference: ${#DIFF_PKGS[@]}${NL}" >> ${CHG_LOG_PATH}
 exit 0 

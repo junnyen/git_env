@@ -10,11 +10,15 @@ fi
 
 IMG_NAME=${IMG_F_NAME%.*}
 
+. ./.config
+echo "SBU: "${SBU}
+echo "PRODUCT_LINE: "${PRODUCT_LINE}
+echo "SERIES: "${SERIES}
+echo "PROJECT: "${PROJECT}
+echo "VERSION: "${VERSION}
+
 PWD_PATH=$(pwd)
-TARGET_PATH="download/NET/MDS/4000/G4000/develop/source"
-#TARGET_PATH="download/NET/MDS/4000/Test/v0.1_2018_0814_1043/source"
-#TARGET_PATH="download/NET/MDS/4000/G4000/2018_0705_2240/source"
-#TARGET_PATH="download/NET/MDS/4000/Release/v0.1_2018_0714/source"
+TARGET_PATH="download/${SBU}/${PRODUCT_LINE}/${SERIES}/${PROJECT}/${VERSION}/source/package"
 
 echo "Currect path: "${PWD_PATH}
 cd  ${TARGET_PATH}
@@ -30,6 +34,11 @@ if [ $? -eq 0 ]; then
     echo -n "Extract ddk-git-repo commit id..."
     echo >> ${PWD_PATH}/pkg_set.txt
     echo ddk-git-repo >> ${PWD_PATH}/pkg_set.txt
+    git log -1 --format=%H >> ${PWD_PATH}/pkg_set.txt
+    # keep ddk rev.
+    cd ../
+    echo >> ${PWD_PATH}/pkg_set.txt
+    echo "ddk" >> ${PWD_PATH}/pkg_set.txt
     git log -1 --format=%H >> ${PWD_PATH}/pkg_set.txt
     echo "done"
 
